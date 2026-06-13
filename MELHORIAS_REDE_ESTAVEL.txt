@@ -1,0 +1,22 @@
+MELHORIAS DE REDE ESTAVEL
+
+Esta versao mantem o projeto original e adiciona melhorias seguras para conexao SSH em redes comuns.
+
+O que foi adicionado:
+- Modulo /bin/redeestavel
+- Modulo /bin/diagnosticorede
+- Opcao 20 no menu: REDE ESTAVEL
+- Opcao 21 no menu: DIAGNOSTICO REDE
+
+O que melhora:
+- KeepAlive do SSH para reduzir quedas
+- UseDNS no SSH para login mais rapido
+- MaxStartups maior para varios clientes
+- Ajustes TCP do Linux
+- Liberacao de portas comuns no firewall
+- Diagnostico de DNS, portas, servicos e internet do servidor
+- Logs em /var/log/sshplus/
+
+Importante:
+Estas melhorias funcionam quando o aparelho/cliente possui rede com acesso valido a internet.
+Nao foi adicionado nenhum recurso para burlar operadora, franquia, credito, bloqueio ou autenticacao.

@@ -1,0 +1,50 @@
+#!/bin/bash
+# DIAGNOSTICO CLIENTE/REDE - seguro
+LOGDIR="/var/log/sshplus"
+mkdir -p "$LOGDIR"
+LOG="$LOGDIR/diagnostico_rede_$(date +%Y%m%d-%H%M%S).log"
+IP_LOCAL=$(hostname -I 2>/dev/null | awk '{print $1}')
+IP_PUBLICO=$(curl -4 -s --max-time 5 https://api.ipify.org || wget -qO- -T 5 https://api.ipify.org)
+
+exec > >(tee "$LOG") 2>&1
+echo "==== SSH PLUS - DIAGNOSTICO DE REDE ===="
+echo "Data: $(date)"
+echo "Servidor: $(hostname)"
+echo "IP local: ${IP_LOCAL:-nao detectado}"
+echo "IP publico: ${IP_PUBLICO:-nao detectado}"
+echo
+
+echo "[1] Internet do servidor"
+ping -c 2 -W 2 1.1.1.1 >/dev/null 2>&1 && echo "OK: ping IP" || echo "FALHA: sem ping para IP externo"
+ping -c 2 -W 2 google.com >/dev/null 2>&1 && echo "OK: DNS" || echo "FALHA: DNS pode estar ruim"
+echo
+
+echo "[2] Portas escutando"
+if command -v ss >/dev/null 2>&1; then
+  ss -lntp | grep -E ':(22|80|443|8080|3128|8799|7300)\b' || true
+else
+  netstat -lntp 2>/dev/null | grep -E ':(22|80|443|8080|3128|8799|7300)\b' || true
+fi
+echo
+
+echo "[3] Servicos"
+for svc in ssh sshd squid squid3 stunnel4 openvpn cron; do
+  if systemctl list-unit-files 2>/dev/null | grep -q "^${svc}\.service"; then
+    systemctl is-active "$svc" >/dev/null 2>&1 && echo "OK: $svc ativo" || echo "AVISO: $svc parado"
+  fi
+done
+echo
+
+echo "[4] Teste sshd_config"
+if command -v sshd >/dev/null 2>&1; then
+  sshd -t && echo "OK: sshd_config valido" || echo "FALHA: sshd_config com erro"
+fi
+echo
+
+echo "[5] Usuarios expirados/limite"
+[ -f /root/usuarios.db ] && head -n 5 /root/usuarios.db || echo "usuarios.db nao encontrado em /root"
+echo
+
+echo "Relatorio salvo em: $LOG"
+echo "Use esse arquivo para ver se a falha e DNS, porta, servico parado, usuario vencido ou internet do cliente."
+read -p "Pressione ENTER para voltar..."

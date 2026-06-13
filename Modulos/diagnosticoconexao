@@ -1,0 +1,31 @@
+#!/bin/bash
+clear
+echo -e "\033[1;32mDIAGNOSTICO SSH PLUS - CONEXAO NORMAL\033[0m"
+echo "Data: $(date)"
+echo "Hostname: $(hostname)"
+echo "Sistema: $(lsb_release -ds 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '"')"
+echo
+for cmd in sshd ssh dropbear squid squid3 stunnel4 openvpn; do
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl is-active --quiet "$cmd" 2>/dev/null && echo "OK serviço ativo: $cmd"
+  fi
+done
+echo
+ip -4 addr show 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '^127' | head -5 | sed 's/^/IPv4: /'
+ip -6 addr show 2>/dev/null | grep -oP '(?<=inet6\s)[0-9a-f:]+' | grep -v '^::1' | head -5 | sed 's/^/IPv6: /'
+echo
+for p in 22 80 443 8080 3128 8799; do
+  ss -lnt 2>/dev/null | grep -q ":$p " && echo "Porta aberta: $p" || echo "Porta fechada: $p"
+done
+echo
+ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1 && echo "Internet IPv4: OK" || echo "Internet IPv4: FALHOU"
+getent hosts google.com >/dev/null 2>&1 && echo "DNS: OK" || echo "DNS: FALHOU"
+mkdir -p /var/log/sshplus
+{
+  echo "===== $(date) ====="
+  ss -lntp 2>/dev/null
+  journalctl -u ssh -u sshd -u dropbear -u stunnel4 -u openvpn --no-pager -n 80 2>/dev/null
+} > /var/log/sshplus/diagnostico-conexao.log
+
+echo
+echo "Log salvo em: /var/log/sshplus/diagnostico-conexao.log"

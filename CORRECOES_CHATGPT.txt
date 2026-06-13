@@ -1,0 +1,10 @@
+Correções aplicadas mantendo o projeto original:
+
+1. Corrigido Modulos/alterarsenha, que estava duplicado e sem fechamento de if/fi.
+2. Reescritos Modulos/proxy.py e Modulos/open.py para Python 3, corrigindo imports antigos, print antigo, tabs/espaços, envio de bytes no socket e timeout.
+3. Ajustado Modulos/conexao para iniciar proxy.py/open.py com python3.
+4. Corrigido apt-get update-y para apt-get update -y.
+5. Atualizado pacote python-pip para python3-pip no instalador Plus.
+6. Adicionado Modulos/diagnosticoconexao para checar rede, DNS, portas e serviços.
+
+Não foram adicionadas funções para burlar operadoras, franquias, bloqueios ou chips sem acesso válido à internet.
